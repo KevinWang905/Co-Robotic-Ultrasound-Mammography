@@ -1,0 +1,6 @@
+<launch>
+
+  <node name="basic_movement_node" pkg="motion_planning" type="basic_movement" respawn="false" output="screen">
+  </node>
+
+</launch>
