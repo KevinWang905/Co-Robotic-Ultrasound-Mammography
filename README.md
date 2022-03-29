@@ -11,3 +11,7 @@
 
 - Motion planning package that allows for motion planning with physical robot.
 - Place in: src/
+
+**Progress.odt**
+
+- Progress notes and troubleshooting steps
