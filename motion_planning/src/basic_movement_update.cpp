@@ -1,5 +1,3 @@
-
-
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
@@ -47,20 +45,27 @@
 
 #include <moveit_visual_tools/moveit_visual_tools.h>
 
+
+
+
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
-#include <tf/transform_broadcaster.h>
+
+//#include <tf/Transform.h>
+
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "basic_movement");
-  ros::NodeHandle node_handle;
-  ros::AsyncSpinner spinner(1);
-  spinner.start();
-
+  ros::NodeHandle node;
 
   tf::TransformListener listener;
-  ros::Rate rate(2000.0);
+  ros::Rate rate(10.0);
+
+
+
+
+
 
   // BEGIN_TUTORIAL
   //
@@ -90,7 +95,7 @@ int main(int argc, char** argv)
   // The package MoveItVisualTools provides many capabilties for visualizing objects, robots,
   // and trajectories in RViz as well as debugging tools such as step-by-step introspection of a script
   namespace rvt = rviz_visual_tools;
-  moveit_visual_tools::MoveItVisualTools visual_tools("world");
+  moveit_visual_tools::MoveItVisualTools visual_tools("base_link");
   visual_tools.deleteAllMarkers();
 
   // Remote control is an introspection tool that allows users to step through a high level script
@@ -124,7 +129,7 @@ int main(int argc, char** argv)
   //visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to start the demo");
 
   // Scale movement speed to 0.1
-  move_group.setMaxVelocityScalingFactor(0.05);
+  move_group.setMaxVelocityScalingFactor(0.1);
 
   // .. _move_group_interface-planning-to-pose-goal:
   //
@@ -133,80 +138,24 @@ int main(int argc, char** argv)
   // We can plan a motion for this group to a desired pose for the
   // end-effector.
   geometry_msgs::Pose target_pose1;
-  // target_pose1.orientation.w = 1.0;
-  // target_pose1.position.x = 0.006;
-  // target_pose1.position.y = 0.3;
-  // target_pose1.position.z = 0.232;
-  // move_group.setPoseTarget(target_pose1);
+  target_pose1.orientation.w = 1.0;
+  target_pose1.position.x = 0.28;
+  target_pose1.position.y = -0.2;
+  target_pose1.position.z = 0.5;
+  move_group.setPoseTarget(target_pose1);
 
   // Now, we call the planner to compute the plan and visualize it.
   // Note that we are just planning, not asking move_group
   // to actually move the robot.
-  while (node_handle.ok()){
-    tf::StampedTransform transform_bh;
-    tf::StampedTransform transform_wm;
-
-    try{
-
-      listener.lookupTransform("world", "probe", ros::Time(0), transform_bh);
-      
-      //listener.lookupTransform("ee_link", "camera", ros::Time(0), transform_hs);
-      //listener.lookupTransform("camera", "marker", ros::Time(0), transform_sc);
-
-      // std::cout << transform_bh.getOrigin().x() << std::endl;
-      // std::cout << transform_bh.getRotation().x() << std::endl;
-
-      static tf::TransformBroadcaster br;
-      tf::Transform transform;
-      transform.setOrigin( tf::Vector3(-0.0892, 0.071, 0.0578) );
-      tf::Quaternion q(-0.0082, 0.112, -0.7103, 0.6949);
-      transform.setRotation(q);
-      br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "tool0", "stereo_gazebo_left_camera_optical_frame"));
-
-      listener.lookupTransform("world", "aruco_marker_frame", ros::Time(0), transform_wm);
-
-      //geometry_msgs::Pose target_pose1;
-
-      // std::cout << transform_wm.getOrigin().x() << std::endl;
-      // std::cout << transform_wm.getOrigin().y() << std::endl;
-      // std::cout << transform_wm.getOrigin().z() << std::endl;
-
-
-      target_pose1.orientation.x = -0.1026;
-      target_pose1.orientation.y = 0.76332;
-      target_pose1.orientation.z = 0.15701;
-      target_pose1.orientation.w = 0.61819;
-      target_pose1.position.x = transform_wm.getOrigin().x() - 0.032 ;
-      target_pose1.position.y = transform_wm.getOrigin().y() + 0.01;
-      target_pose1.position.z = transform_wm.getOrigin().z() + 0.05;
-
-      break;
-      
-    }
-    catch (tf::TransformException ex){
-      ROS_ERROR("%s", ex.what());
-      ros::Duration(1.0).sleep();
-    }
-    rate.sleep();
-  }
-
-  move_group.setPoseTarget(target_pose1);
-
   moveit::planning_interface::MoveGroupInterface::Plan my_plan;
 
   bool success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
 
   ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
 
-  // target_pose1.orientation.w = 1.0;
-  // target_pose1.position.x = 0.006;
-  // target_pose1.position.y = 0.3;
-  // target_pose1.position.z = 0.232;
-  // move_group.setPoseTarget(target_pose1);
-
   // Visualizing plans
   // ^^^^^^^^^^^^^^^^^
-  //We can also visualize the plan as a line with markers in RViz.
+  // We can also visualize the plan as a line with markers in RViz.
   ROS_INFO_NAMED("tutorial", "Visualizing plan 1 as trajectory line");
   visual_tools.publishAxisLabeled(target_pose1, "pose1");
   visual_tools.publishText(text_pose, "Pose Goal", rvt::WHITE, rvt::XLARGE);
@@ -216,13 +165,38 @@ int main(int argc, char** argv)
 
 
   //move the robot
-  move_group.move();
+  //move_group.move();
 
-  
+    while (node.ok()){
+    tf::StampedTransform transform_bh;
+    tf::StampedTransform transform_sc;
+    tf::StampedTransform transform_hs;
+
+    listener.lookupTransform("ee_link", "ee_link", ros::Time::now(), transform_bh);
+    //listener.lookupTransform("ee_link", "camera", ros::Time(0), transform_hs);
+    //listener.lookupTransform("camera", "marker", ros::Time(0), transform_sc);
+
+    std::cout << transform_bh.getOrigin().x() << std::endl;
+    std::cout << transform_bh.getRotation().x() << std::endl;
+
+    /*
+    tf::StampedTransform transform_bc = transform_bh * transform_hs * transform_sc;
+    geometry_msgs::Pose target_pose1;
+	  target_pose1.position.x = transform_bc.getOrigin().x() - 0.2;
+	  target_pose1.position.y = transform_bc.getOrigin().y() - 0.2;
+	  target_pose1.position.z = transform_bc.getOrigin().z() - 0.2;
+	  target_pose1.orientation.x = transform_bc.getRotation().x();
+	  target_pose1.orientation.y = transform_bc.getRotation().y();
+	  target_pose1.orientation.z = transform_bc.getRotation().z();
+	  target_pose1.orientation.w = transform_bc.getRotation().w();
+    move_group.setPoseTarget(target_pose1);
+    */
+    rate.sleep();
+  }
+
 
   // END_TUTORIAL
 
-  //ros::shutdown();
+  ros::shutdown();
   return 0;
 }
-

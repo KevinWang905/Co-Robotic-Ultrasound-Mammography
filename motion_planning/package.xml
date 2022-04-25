@@ -65,6 +65,7 @@
   <build_depend>tf2_ros</build_depend>
   <build_depend>tf2_eigen</build_depend>
   <build_depend>tf2_geometry_msgs</build_depend>
+  <build_depend>pointgrey_camera_driver</build_depend>
 
   <exec_depend>panda_moveit_config</exec_depend>
   <exec_depend>pluginlib</exec_depend>
@@ -82,6 +83,7 @@
   <exec_depend>tf2_ros</exec_depend>
   <exec_depend>tf2_eigen</exec_depend>
   <exec_depend>tf2_geometry_msgs</exec_depend>
+  <exec_depend>pointgrey_camera_driver</exec_depend>
 
 <build_depend>roscpp</build_depend>
 <build_export_depend>roscpp</build_export_depend>

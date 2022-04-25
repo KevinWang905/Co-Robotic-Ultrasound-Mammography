@@ -119,36 +119,13 @@ int main(int argc, char** argv)
   std::copy(move_group.getJointModelGroupNames().begin(), move_group.getJointModelGroupNames().end(),
             std::ostream_iterator<std::string>(std::cout, ", "));
 
-  // Start the demo
-  // ^^^^^^^^^^^^^^^^^^^^^^^^^
-  //visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to start the demo");
-
-  // Scale movement speed to 0.1
-  move_group.setMaxVelocityScalingFactor(0.05);
-
-  // .. _move_group_interface-planning-to-pose-goal:
-  //
-  // Planning to a Pose goal
-  // ^^^^^^^^^^^^^^^^^^^^^^^
-  // We can plan a motion for this group to a desired pose for the
-  // end-effector.
-  geometry_msgs::Pose target_pose1;
-  // target_pose1.orientation.w = 1.0;
-  // target_pose1.position.x = 0.006;
-  // target_pose1.position.y = 0.3;
-  // target_pose1.position.z = 0.232;
-  // move_group.setPoseTarget(target_pose1);
-
-  // Now, we call the planner to compute the plan and visualize it.
-  // Note that we are just planning, not asking move_group
-  // to actually move the robot.
   while (node_handle.ok()){
     tf::StampedTransform transform_bh;
     tf::StampedTransform transform_wm;
 
     try{
 
-      listener.lookupTransform("world", "probe", ros::Time(0), transform_bh);
+      listener.lookupTransform("world", "ee_link", ros::Time(0), transform_bh);
       
       //listener.lookupTransform("ee_link", "camera", ros::Time(0), transform_hs);
       //listener.lookupTransform("camera", "marker", ros::Time(0), transform_sc);
@@ -167,20 +144,9 @@ int main(int argc, char** argv)
 
       //geometry_msgs::Pose target_pose1;
 
-      // std::cout << transform_wm.getOrigin().x() << std::endl;
-      // std::cout << transform_wm.getOrigin().y() << std::endl;
-      // std::cout << transform_wm.getOrigin().z() << std::endl;
-
-
-      target_pose1.orientation.x = -0.1026;
-      target_pose1.orientation.y = 0.76332;
-      target_pose1.orientation.z = 0.15701;
-      target_pose1.orientation.w = 0.61819;
-      target_pose1.position.x = transform_wm.getOrigin().x() - 0.032 ;
-      target_pose1.position.y = transform_wm.getOrigin().y() + 0.01;
-      target_pose1.position.z = transform_wm.getOrigin().z() + 0.05;
-
-      break;
+      std::cout << transform_wm.getOrigin().x() << std::endl;
+      std::cout << transform_wm.getOrigin().y() << std::endl;
+      std::cout << transform_wm.getOrigin().z() << std::endl;
       
     }
     catch (tf::TransformException ex){
@@ -189,40 +155,6 @@ int main(int argc, char** argv)
     }
     rate.sleep();
   }
-
-  move_group.setPoseTarget(target_pose1);
-
-  moveit::planning_interface::MoveGroupInterface::Plan my_plan;
-
-  bool success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-
-  ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
-
-  // target_pose1.orientation.w = 1.0;
-  // target_pose1.position.x = 0.006;
-  // target_pose1.position.y = 0.3;
-  // target_pose1.position.z = 0.232;
-  // move_group.setPoseTarget(target_pose1);
-
-  // Visualizing plans
-  // ^^^^^^^^^^^^^^^^^
-  //We can also visualize the plan as a line with markers in RViz.
-  ROS_INFO_NAMED("tutorial", "Visualizing plan 1 as trajectory line");
-  visual_tools.publishAxisLabeled(target_pose1, "pose1");
-  visual_tools.publishText(text_pose, "Pose Goal", rvt::WHITE, rvt::XLARGE);
-  visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
-  visual_tools.trigger();
-  //visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to continue the demo");
-
-
-  //move the robot
-  move_group.move();
-
-  
-
-  // END_TUTORIAL
-
-  //ros::shutdown();
   return 0;
 }
 

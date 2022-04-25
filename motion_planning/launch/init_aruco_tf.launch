@@ -1,0 +1,6 @@
+<launch>
+
+  <node name="init_aruco_tf_node" pkg="motion_planning" type="init_aruco_tf" respawn="false" output="screen">
+  </node>
+
+</launch>

@@ -51,6 +51,9 @@
 #include <tf/transform_listener.h>
 #include <tf/transform_broadcaster.h>
 
+#include <Eigen/Geometry>
+#include <iostream>
+
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "basic_movement");
@@ -125,6 +128,7 @@ int main(int argc, char** argv)
 
   // Scale movement speed to 0.1
   move_group.setMaxVelocityScalingFactor(0.05);
+  move_group.setMaxAccelerationScalingFactor(0.1);
 
   // .. _move_group_interface-planning-to-pose-goal:
   //
@@ -142,9 +146,39 @@ int main(int argc, char** argv)
   // Now, we call the planner to compute the plan and visualize it.
   // Note that we are just planning, not asking move_group
   // to actually move the robot.
+  tf::StampedTransform transform_bh;
+  tf::StampedTransform transform_wm;
+  float tag_x = 0;
+  float tag_y = 0;
+  float tag_z = 0;
+
+  moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+  bool success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+
+      try{
+          target_pose1.orientation.x = 0.219516;
+          target_pose1.orientation.y = 0.718178;
+          target_pose1.orientation.z = -0.192821;
+          target_pose1.orientation.w = 0.631548;
+          target_pose1.position.x = 0.191656;
+          target_pose1.position.y = 0.742496;
+          target_pose1.position.z = 0.579901;
+          std::cout << "Moving to Initial Pose" << std::endl;
+          std::cout << target_pose1.position.x << std::endl;
+          std::cout << target_pose1.position.y << std::endl;
+          std::cout << target_pose1.position.z << std::endl;
+          move_group.setPoseTarget(target_pose1);
+          success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+          ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
+          move_group.move();
+      }
+      catch (tf::TransformException ex){
+        ROS_ERROR("%s", ex.what());
+        ros::Duration(1.0).sleep();
+      }
+
   while (node_handle.ok()){
-    tf::StampedTransform transform_bh;
-    tf::StampedTransform transform_wm;
+
 
     try{
 
@@ -167,9 +201,12 @@ int main(int argc, char** argv)
 
       //geometry_msgs::Pose target_pose1;
 
-      // std::cout << transform_wm.getOrigin().x() << std::endl;
-      // std::cout << transform_wm.getOrigin().y() << std::endl;
-      // std::cout << transform_wm.getOrigin().z() << std::endl;
+      std::cout << transform_wm.getOrigin().x() << std::endl;
+      std::cout << transform_wm.getOrigin().y() << std::endl;
+      std::cout << transform_wm.getOrigin().z() << std::endl;
+
+
+
 
 
       target_pose1.orientation.x = -0.1026;
@@ -179,6 +216,9 @@ int main(int argc, char** argv)
       target_pose1.position.x = transform_wm.getOrigin().x() - 0.032 ;
       target_pose1.position.y = transform_wm.getOrigin().y() + 0.01;
       target_pose1.position.z = transform_wm.getOrigin().z() + 0.05;
+      tag_x = target_pose1.position.x;
+      tag_y = target_pose1.position.y;
+      tag_z = target_pose1.position.z;
 
       break;
       
@@ -192,33 +232,35 @@ int main(int argc, char** argv)
 
   move_group.setPoseTarget(target_pose1);
 
-  moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+ 
 
-  bool success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+
 
   ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
-
-  // target_pose1.orientation.w = 1.0;
-  // target_pose1.position.x = 0.006;
-  // target_pose1.position.y = 0.3;
-  // target_pose1.position.z = 0.232;
-  // move_group.setPoseTarget(target_pose1);
-
-  // Visualizing plans
-  // ^^^^^^^^^^^^^^^^^
-  //We can also visualize the plan as a line with markers in RViz.
   ROS_INFO_NAMED("tutorial", "Visualizing plan 1 as trajectory line");
   visual_tools.publishAxisLabeled(target_pose1, "pose1");
   visual_tools.publishText(text_pose, "Pose Goal", rvt::WHITE, rvt::XLARGE);
   visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
   visual_tools.trigger();
-  //visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to continue the demo");
-
-
-  //move the robot
+  std::cout << "Move to lesion location" << std::endl;
   move_group.move();
 
-  
+
+    target_pose1.orientation.x = 0.219516;
+    target_pose1.orientation.y = 0.718178;
+    target_pose1.orientation.z = -0.192821;
+    target_pose1.orientation.w = 0.631548;
+    target_pose1.position.x = 0.191656;
+    target_pose1.position.y = 0.742496;
+    target_pose1.position.z = 0.579901;
+    std::cout << "Return to Initial Pose" << std::endl;
+    std::cout << target_pose1.position.x << std::endl;
+    std::cout << target_pose1.position.y << std::endl;
+    std::cout << target_pose1.position.z << std::endl;
+    move_group.setPoseTarget(target_pose1);
+    success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+    ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
+    move_group.move();
 
   // END_TUTORIAL
 

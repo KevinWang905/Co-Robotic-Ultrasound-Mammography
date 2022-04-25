@@ -1,0 +1,6 @@
+<launch>
+
+  <node name="translation_wobble_node" pkg="motion_planning" type="translational_wobble" respawn="false" output="screen">
+  </node>
+
+</launch>

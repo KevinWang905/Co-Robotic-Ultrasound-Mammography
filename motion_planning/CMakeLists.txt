@@ -23,6 +23,7 @@ find_package(catkin REQUIRED
     tf2_ros
     tf2_eigen
     tf2_geometry_msgs
+    pointgrey_camera_driver
 )
 
 find_package(Eigen3 REQUIRED)
@@ -41,6 +42,7 @@ catkin_package(
     moveit_ros_planning_interface
     interactive_markers
     tf2_geometry_msgs
+    pointgrey_camera_driver
   DEPENDS
     EIGEN3
 )
@@ -52,5 +54,20 @@ include_directories(${THIS_PACKAGE_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS} ${Boost_
 
 add_executable(basic_movement src/basic_movement.cpp)
 target_link_libraries(basic_movement ${catkin_LIBRARIES})
+
+add_executable(translational_wobble src/translational_wobble.cpp)
+target_link_libraries(translational_wobble ${catkin_LIBRARIES})
+
+add_executable(real_time_movement src/real_time_movement.cpp)
+target_link_libraries(real_time_movement ${catkin_LIBRARIES})
+
+add_executable(init_aruco_tf src/init_aruco_tf.cpp)
+target_link_libraries(init_aruco_tf ${catkin_LIBRARIES})
+
+add_executable(rotational_wobble src/rotational_wobble.cpp)
+target_link_libraries(rotational_wobble ${catkin_LIBRARIES})
+
+add_executable(position_test src/position_test.cpp)
+target_link_libraries(position_test ${catkin_LIBRARIES})
 
 

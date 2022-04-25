@@ -148,7 +148,7 @@ int main(int argc, char** argv)
 
     try{
 
-      listener.lookupTransform("world", "probe", ros::Time(0), transform_bh);
+      listener.lookupTransform("world", "ee_link", ros::Time(0), transform_bh);
       
       //listener.lookupTransform("ee_link", "camera", ros::Time(0), transform_hs);
       //listener.lookupTransform("camera", "marker", ros::Time(0), transform_sc);
@@ -167,9 +167,9 @@ int main(int argc, char** argv)
 
       //geometry_msgs::Pose target_pose1;
 
-      // std::cout << transform_wm.getOrigin().x() << std::endl;
-      // std::cout << transform_wm.getOrigin().y() << std::endl;
-      // std::cout << transform_wm.getOrigin().z() << std::endl;
+      std::cout << transform_wm.getOrigin().x() << std::endl;
+      std::cout << transform_wm.getOrigin().y() << std::endl;
+      std::cout << transform_wm.getOrigin().z() << std::endl;
 
 
       target_pose1.orientation.x = -0.1026;
@@ -178,7 +178,7 @@ int main(int argc, char** argv)
       target_pose1.orientation.w = 0.61819;
       target_pose1.position.x = transform_wm.getOrigin().x() - 0.032 ;
       target_pose1.position.y = transform_wm.getOrigin().y() + 0.01;
-      target_pose1.position.z = transform_wm.getOrigin().z() + 0.05;
+      target_pose1.position.z = transform_wm.getOrigin().z() + 0.32;
 
       break;
       

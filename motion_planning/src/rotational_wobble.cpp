@@ -51,6 +51,9 @@
 #include <tf/transform_listener.h>
 #include <tf/transform_broadcaster.h>
 
+#include <Eigen/Geometry>
+#include <iostream>
+
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "basic_movement");
@@ -125,6 +128,7 @@ int main(int argc, char** argv)
 
   // Scale movement speed to 0.1
   move_group.setMaxVelocityScalingFactor(0.05);
+  move_group.setMaxAccelerationScalingFactor(0.1);
 
   // .. _move_group_interface-planning-to-pose-goal:
   //
@@ -142,9 +146,14 @@ int main(int argc, char** argv)
   // Now, we call the planner to compute the plan and visualize it.
   // Note that we are just planning, not asking move_group
   // to actually move the robot.
+  tf::StampedTransform transform_bh;
+  tf::StampedTransform transform_wm;
+  float tag_x = 0;
+  float tag_y = 0;
+  float tag_z = 0;
+
   while (node_handle.ok()){
-    tf::StampedTransform transform_bh;
-    tf::StampedTransform transform_wm;
+
 
     try{
 
@@ -167,9 +176,12 @@ int main(int argc, char** argv)
 
       //geometry_msgs::Pose target_pose1;
 
-      // std::cout << transform_wm.getOrigin().x() << std::endl;
-      // std::cout << transform_wm.getOrigin().y() << std::endl;
-      // std::cout << transform_wm.getOrigin().z() << std::endl;
+      std::cout << transform_wm.getOrigin().x() << std::endl;
+      std::cout << transform_wm.getOrigin().y() << std::endl;
+      std::cout << transform_wm.getOrigin().z() << std::endl;
+
+
+
 
 
       target_pose1.orientation.x = -0.1026;
@@ -179,7 +191,22 @@ int main(int argc, char** argv)
       target_pose1.position.x = transform_wm.getOrigin().x() - 0.032 ;
       target_pose1.position.y = transform_wm.getOrigin().y() + 0.01;
       target_pose1.position.z = transform_wm.getOrigin().z() + 0.05;
+      tag_x = target_pose1.position.x;
+      tag_y = target_pose1.position.y;
+      tag_z = target_pose1.position.z;
+      // target_pose1.orientation.x = 0;//transform_wm.getRotation().x();
+      // target_pose1.orientation.y = 0;//transform_wm.getRotation().y();
+      // target_pose1.orientation.z = 0;//transform_wm.getRotation().z();
+       //target_pose1.orientation.w = 1;//transform_wm.getRotation().w();
+      // move_group.setPoseTarget(target_pose1);
 
+      // moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+
+      // bool success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+
+      // ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
+
+      // move_group.move();
       break;
       
     }
@@ -218,7 +245,99 @@ int main(int argc, char** argv)
   //move the robot
   move_group.move();
 
-  
+
+  Eigen::Quaterniond q;
+  q.x() = -0.1026;
+  q.y() = 0.76332;
+  q.z() = 0.15701;
+  q.w() = 0.61819;;
+
+
+  Eigen::Matrix3d rot1 = q.toRotationMatrix();
+  Eigen::Matrix3d rot30;
+  rot30 << 0.8660254, -0.5, 0, 0.5, 0.8660254, 0,0,0,1;
+  Eigen::Matrix3d wobble = rot1 * rot30;
+  Eigen::Quaterniond wobble_q(wobble);
+  wobble_q = wobble_q.normalized();
+
+
+  Eigen::Matrix3d rotneg30;
+  rotneg30 << 0.8660254, 0.5, 0, -0.5, 0.8660254, 0,0,0,1;
+  Eigen::Matrix3d wobble2 = rot1 * rotneg30;
+  Eigen::Quaterniond wobble2_q(wobble2);
+  wobble2_q = wobble2_q.normalized();
+
+
+
+      // target_pose1.orientation.x = 0.142717;
+      // target_pose1.orientation.y = 0.697878;
+      // target_pose1.orientation.z = 0.100376;
+      // target_pose1.orientation.w = 0.694639;
+      target_pose1.orientation.x = wobble_q.x();
+      target_pose1.orientation.y = wobble_q.y();
+      target_pose1.orientation.z = wobble_q.z();
+      target_pose1.orientation.w = wobble_q.w();
+      target_pose1.position.x = tag_x;
+      target_pose1.position.y = tag_y;
+      target_pose1.position.z = tag_z;
+    std::cout << "Wobble 1" << std::endl;
+    std::cout << target_pose1.orientation.x << std::endl;
+    std::cout << target_pose1.orientation.y << std::endl;
+    std::cout << target_pose1.orientation.z << std::endl;
+    std::cout << target_pose1.orientation.w << std::endl;
+    move_group.setPoseTarget(target_pose1);
+    success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+    ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
+    move_group.move();
+
+      target_pose1.orientation.x = -0.1026;
+      target_pose1.orientation.y = 0.76332;
+      target_pose1.orientation.z = 0.15701;
+      target_pose1.orientation.w = 0.61819;
+      target_pose1.position.x = tag_x;
+      target_pose1.position.y = tag_y;
+      target_pose1.position.z = tag_z;
+        std::cout << "Wobble 2" << std::endl;
+    std::cout << target_pose1.position.x << std::endl;
+    std::cout << target_pose1.position.y << std::endl;
+    std::cout << target_pose1.position.z << std::endl;
+    move_group.setPoseTarget(target_pose1);
+    success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+    ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
+    move_group.move();
+
+      target_pose1.orientation.x = wobble2_q.x();
+      target_pose1.orientation.y = wobble2_q.y();
+      target_pose1.orientation.z = wobble2_q.z();
+      target_pose1.orientation.w = wobble2_q.w();
+      target_pose1.position.x = tag_x;
+      target_pose1.position.y = tag_y;
+      target_pose1.position.z = tag_z;
+    std::cout << "Wobble 1" << std::endl;
+    std::cout << target_pose1.orientation.x << std::endl;
+    std::cout << target_pose1.orientation.y << std::endl;
+    std::cout << target_pose1.orientation.z << std::endl;
+    std::cout << target_pose1.orientation.w << std::endl;
+    move_group.setPoseTarget(target_pose1);
+    success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+    ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
+    move_group.move();
+
+      target_pose1.orientation.x = 0.219516;
+      target_pose1.orientation.y = 0.718178;
+      target_pose1.orientation.z = -0.192821;
+      target_pose1.orientation.w = 0.631548;
+      target_pose1.position.x = 0.191656;
+      target_pose1.position.y = 0.742496;
+      target_pose1.position.z = 0.579901;
+        std::cout << "Wobble 2" << std::endl;
+    std::cout << target_pose1.position.x << std::endl;
+    std::cout << target_pose1.position.y << std::endl;
+    std::cout << target_pose1.position.z << std::endl;
+    move_group.setPoseTarget(target_pose1);
+    success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+    ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
+    move_group.move();
 
   // END_TUTORIAL
 

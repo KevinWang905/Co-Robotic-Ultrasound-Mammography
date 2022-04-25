@@ -1,0 +1,6 @@
+<launch>
+
+  <node name="rtm_node" pkg="motion_planning" type="real_time_movement" respawn="false" output="screen">
+  </node>
+
+</launch>

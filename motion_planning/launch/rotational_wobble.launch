@@ -1,0 +1,6 @@
+<launch>
+
+  <node name="rotational_wobble_node" pkg="motion_planning" type="rotational_wobble" respawn="false" output="screen">
+  </node>
+
+</launch>

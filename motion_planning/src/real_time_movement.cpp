@@ -148,7 +148,7 @@ int main(int argc, char** argv)
 
     try{
 
-      listener.lookupTransform("world", "probe", ros::Time(0), transform_bh);
+      listener.lookupTransform("world", "ee_link", ros::Time(0), transform_bh);
       
       //listener.lookupTransform("ee_link", "camera", ros::Time(0), transform_hs);
       //listener.lookupTransform("camera", "marker", ros::Time(0), transform_sc);
@@ -163,22 +163,28 @@ int main(int argc, char** argv)
       transform.setRotation(q);
       br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "tool0", "stereo_gazebo_left_camera_optical_frame"));
 
+      // tf::Transform transform2;
+      // transform2.setOrigin( tf::Vector3(-0.0892, 0.071, 0.0578) );
+      // tf::Quaternion q(0, 0, 0, 1);
+      // transform2.setRotation(q);
+      // br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "tool0", "stereo_gazebo_left_camera_optical_frame"));
+
       listener.lookupTransform("world", "aruco_marker_frame", ros::Time(0), transform_wm);
 
       //geometry_msgs::Pose target_pose1;
 
-      // std::cout << transform_wm.getOrigin().x() << std::endl;
-      // std::cout << transform_wm.getOrigin().y() << std::endl;
-      // std::cout << transform_wm.getOrigin().z() << std::endl;
+      std::cout << transform_wm.getOrigin().x() << std::endl;
+      std::cout << transform_wm.getOrigin().y() << std::endl;
+      std::cout << transform_wm.getOrigin().z() << std::endl;
 
 
       target_pose1.orientation.x = -0.1026;
       target_pose1.orientation.y = 0.76332;
       target_pose1.orientation.z = 0.15701;
       target_pose1.orientation.w = 0.61819;
-      target_pose1.position.x = transform_wm.getOrigin().x() - 0.032 ;
-      target_pose1.position.y = transform_wm.getOrigin().y() + 0.01;
-      target_pose1.position.z = transform_wm.getOrigin().z() + 0.05;
+      target_pose1.position.x = transform_wm.getOrigin().x() + 0.116;
+      target_pose1.position.y = transform_wm.getOrigin().y() - 0.077;
+      target_pose1.position.z = transform_wm.getOrigin().z() + 0.4;
 
       break;
       
@@ -218,7 +224,76 @@ int main(int argc, char** argv)
   //move the robot
   move_group.move();
 
+  int loop = 1;
+  while (loop == 1){
+    tf::StampedTransform transform_bh;
+    tf::StampedTransform transform_wm;
+    try{
+
+      listener.lookupTransform("world", "ee_link", ros::Time(0), transform_bh);
+
+      static tf::TransformBroadcaster br;
+      tf::Transform transform;
+      transform.setOrigin( tf::Vector3(-0.0892, 0.071, 0.0578) );
+      tf::Quaternion q(-0.0082, 0.112, -0.7103, 0.6949);
+      transform.setRotation(q);
+      br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "tool0", "stereo_gazebo_left_camera_optical_frame"));
+
+      listener.lookupTransform("world", "aruco_marker_frame", ros::Time(0), transform_wm);
+
+      //geometry_msgs::Pose target_pose1;
+
+      std::cout << transform_wm.getOrigin().x() << std::endl;
+      std::cout << transform_wm.getOrigin().y() << std::endl;
+      std::cout << transform_wm.getOrigin().z() << std::endl;
+
+
+      target_pose1.orientation.x = -0.1026;
+      target_pose1.orientation.y = 0.76332;
+      target_pose1.orientation.z = 0.15701;
+      target_pose1.orientation.w = 0.61819;
+      target_pose1.position.x = transform_wm.getOrigin().x() + 0.116;
+      target_pose1.position.y = transform_wm.getOrigin().y() - 0.077;
+      // target_pose1.position.z = transform_wm.getOrigin().z() + 0.32;
+      target_pose1.position.z = transform_wm.getOrigin().z() + 0.4;
+
+      move_group.setPoseTarget(target_pose1);
+
+      moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+
+      bool success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+
+      ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
+
+      // target_pose1.orientation.w = 1.0;
+      // target_pose1.position.x = 0.006;
+      // target_pose1.position.y = 0.3;
+      // target_pose1.position.z = 0.232;
+      // move_group.setPoseTarget(target_pose1);
+
+      // Visualizing plans
+      // ^^^^^^^^^^^^^^^^^
+      //We can also visualize the plan as a line with markers in RViz.
+      ROS_INFO_NAMED("tutorial", "Visualizing plan 1 as trajectory line");
+      visual_tools.publishAxisLabeled(target_pose1, "pose1");
+      visual_tools.publishText(text_pose, "Pose Goal", rvt::WHITE, rvt::XLARGE);
+      visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
+      visual_tools.trigger();
+      //visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to continue the demo");
+
+
+      //move the robot
+      move_group.move();
+      
+    }
+    catch (tf::TransformException ex){
+      ROS_ERROR("%s", ex.what());
+      ros::Duration(1.0).sleep();
+    }
+    rate.sleep();
   
+  }
+
 
   // END_TUTORIAL
 

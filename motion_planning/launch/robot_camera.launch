@@ -1,0 +1,15 @@
+<launch>
+  <!-- Run pointgray camera -->
+  <include file="$(find pointgrey_camera_driver)/launch/camera.launch">
+  </include>
+
+  <!-- Run image_proc -->
+  <node name = "image_proc" pkg="image_proc" type="image_proc">
+	<env name = "ROS_NAMESPACE" value = "camera" />
+  </node>
+
+  <!-- Run arucoros -->
+  <include file="$(find aruco_ros)/launch/single.launch">
+  </include>
+
+</launch>
