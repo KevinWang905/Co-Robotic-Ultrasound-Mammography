@@ -1,0 +1,6 @@
+<launch>
+
+  <node name="force_sensor_node" pkg="motion_planning" type="force_sensor_integration" respawn="false" output="screen">
+  </node>
+
+</launch>

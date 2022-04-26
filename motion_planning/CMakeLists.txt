@@ -70,4 +70,10 @@ target_link_libraries(rotational_wobble ${catkin_LIBRARIES})
 add_executable(position_test src/position_test.cpp)
 target_link_libraries(position_test ${catkin_LIBRARIES})
 
+add_executable(input_wobble src/input_wobble.cpp)
+target_link_libraries(input_wobble ${catkin_LIBRARIES})
+
+add_executable(force_sensor_integration src/force_sensor_integration.cpp)
+target_link_libraries(force_sensor_integration ${catkin_LIBRARIES})
+
 
