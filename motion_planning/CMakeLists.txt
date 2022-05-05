@@ -76,4 +76,8 @@ target_link_libraries(input_wobble ${catkin_LIBRARIES})
 add_executable(force_sensor_integration src/force_sensor_integration.cpp)
 target_link_libraries(force_sensor_integration ${catkin_LIBRARIES})
 
+add_executable(force_wobble src/force_wobble.cpp)
+target_link_libraries(force_wobble ${catkin_LIBRARIES})
+
+
 

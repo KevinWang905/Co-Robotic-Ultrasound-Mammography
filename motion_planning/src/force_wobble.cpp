@@ -54,6 +54,18 @@
 #include <Eigen/Geometry>
 #include <iostream>
 
+
+#include <geometry_msgs/WrenchStamped.h>
+
+//Initialize global Wrench
+geometry_msgs::Wrench wr;
+
+void ftCallback( const geometry_msgs::WrenchStamped& stamped_wr ) {
+
+  wr = stamped_wr.wrench;
+
+}
+
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "basic_movement");
@@ -63,6 +75,7 @@ int main(int argc, char** argv)
 
 
   tf::TransformListener listener;
+  ros::Subscriber ft_sub;
   ros::Rate rate(2000.0);
 
   // BEGIN_TUTORIAL
@@ -129,6 +142,7 @@ int main(int argc, char** argv)
   // Scale movement speed to 0.1
   move_group.setMaxVelocityScalingFactor(0.05);
   move_group.setMaxAccelerationScalingFactor(0.1);
+  //move_group.setPlannerId("RRTstarkConfigDefault");
 
   // .. _move_group_interface-planning-to-pose-goal:
   //
@@ -152,6 +166,29 @@ int main(int argc, char** argv)
   float tag_x = 0;
   float tag_y = 0;
   float tag_z = 0;
+
+  // // Add cylinder to robot
+  // moveit_msgs::CollisionObject object_to_attach;
+  // object_to_attach.id = "cylinder1";
+  // shape_msgs::SolidPrimitive primitive;
+  // shape_msgs::SolidPrimitive cylinder_primitive;
+  // cylinder_primitive.type = primitive.CYLINDER;
+  // cylinder_primitive.dimensions.resize(2);
+  // cylinder_primitive.dimensions[primitive.CYLINDER_HEIGHT] = 0.262;
+  // cylinder_primitive.dimensions[primitive.CYLINDER_RADIUS] = 0.15;
+  // object_to_attach.header.frame_id = "ee_link";
+  // geometry_msgs::Pose grab_pose;
+
+  // grab_pose.orientation.w = 1.0;
+  // grab_pose.position.z = 0.2;
+
+  // object_to_attach.primitives.push_back(cylinder_primitive);
+  // object_to_attach.primitive_poses.push_back(grab_pose);
+  // object_to_attach.operation = object_to_attach.ADD;
+  // planning_scene_interface.applyCollisionObject(object_to_attach);
+  // move_group.attachObject(object_to_attach.id, "ee_link");
+
+
 
   while (node_handle.ok()){
 
@@ -184,13 +221,15 @@ int main(int argc, char** argv)
 
 
       //Set first target as PROBE positioned vertically downward 5 cm above TAG
-      target_pose1.orientation.x = -0.1026;
-      target_pose1.orientation.y = 0.76332;
-      target_pose1.orientation.z = 0.15701;
-      target_pose1.orientation.w = 0.61819;
+      target_pose1.orientation.x = 0.234713;
+      target_pose1.orientation.y = 0.725081;
+      target_pose1.orientation.z = -0.232557;
+      target_pose1.orientation.w = 0.604222;
       target_pose1.position.x = tag_x;
       target_pose1.position.y = tag_y;
-      target_pose1.position.z = tag_z + 0.1;
+      target_pose1.position.z = tag_z + 0.05;
+
+
 
 
       break;
@@ -210,6 +249,28 @@ int main(int argc, char** argv)
   bool success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
   ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
   move_group.move();
+
+          // Add cylinder to robot
+  // moveit_msgs::CollisionObject object_to_attach;
+  // object_to_attach.id = "cylinder1";
+  // shape_msgs::SolidPrimitive primitive;
+  // shape_msgs::SolidPrimitive cylinder_primitive;
+  // cylinder_primitive.type = primitive.CYLINDER;
+  // cylinder_primitive.dimensions.resize(2);
+  // cylinder_primitive.dimensions[primitive.CYLINDER_HEIGHT] = 0.262;
+  // cylinder_primitive.dimensions[primitive.CYLINDER_RADIUS] = 0.15;
+  // object_to_attach.header.frame_id = "probe";
+  // geometry_msgs::Pose grab_pose;
+
+  // grab_pose.orientation.w = 1;
+
+  // object_to_attach.primitives.push_back(cylinder_primitive);
+  // object_to_attach.primitive_poses.push_back(grab_pose);
+  // object_to_attach.operation = object_to_attach.ADD;
+  // planning_scene_interface.applyCollisionObject(object_to_attach);
+  // move_group.attachObject(object_to_attach.id, "probe");
+
+
   
   /*
   // Visualizing plans
@@ -250,10 +311,14 @@ int main(int argc, char** argv)
   
   //Rotation representing PROBE directly downward
   Eigen::Quaterniond q;
-  q.x() = -0.1026;
-  q.y() = 0.76332;
-  q.z() = 0.15701;
-  q.w() = 0.61819;
+  // q.x() = -0.1026;
+  // q.y() = 0.76332;
+  // q.z() = 0.15701;
+  // q.w() = 0.61819;
+    q.x() = 0.234713;
+    q.y() = 0.725081;
+    q.z() = -0.232557;
+    q.w() = 0.604222;
 
 
   //Generate quaternion for 30 degree rotation about the y axis
@@ -297,32 +362,67 @@ int main(int argc, char** argv)
     target_pose1.orientation.w = q.w();
     target_pose1.position.x = tag_x + regions[1][i];
     target_pose1.position.y = tag_y + regions[2][i];
-    target_pose1.position.z = tag_z + 0.1;
+    target_pose1.position.z = tag_z + 0.02;
 
     move_group.setPoseTarget(target_pose1);
     success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
     ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
     move_group.move();
 
-    //Move PROBE to region of concern
-    target_pose1.orientation.x = q.x();
-    target_pose1.orientation.y = q.y();
-    target_pose1.orientation.z = q.z();
-    target_pose1.orientation.w = q.w();
-    target_pose1.position.x = tag_x + regions[1][i];
-    target_pose1.position.y = tag_y + regions[2][i];
-    target_pose1.position.z = tag_z + 0.1;
 
-    move_group.setPoseTarget(target_pose1);
-    success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-    ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
-    move_group.move();
+    //Move PROBE to region of concern with force sensing
+    float z = tag_z + 0.02;
+    ft_sub = node_handle.subscribe("robotiq_ft_wrench", 10, ftCallback);   
+    std::cout << wr.force.z << std::endl;
 
-  
+    // Set constraint for movement to point to keep position vertical
+    // moveit_msgs::OrientationConstraint ocm;
+    // ocm.link_name = "probe";
+    // ocm.header.frame_id = "world";
+    // ocm.orientation.x = q.x();
+    // ocm.orientation.y = q.y();
+    // ocm.orientation.z = q.z();
+    // ocm.orientation.w = q.w();
+    // ocm.absolute_x_axis_tolerance = 0.01;
+    // ocm.absolute_y_axis_tolerance = 0.01;
+    // ocm.absolute_z_axis_tolerance = 0.01;
+    // ocm.weight = 1.0;
+    // moveit_msgs::Constraints test_constraints;
+    // test_constraints.orientation_constraints.push_back(ocm);
+    // move_group.setPathConstraints(test_constraints);
+    ///
 
+
+    while (wr.force.z > -1) {
+
+      std::cout << wr.force.z << std::endl;
+
+      z -= 0.001;
+      
+      //Move PROBE to region of concern
+      target_pose1.orientation.x = q.x();
+      target_pose1.orientation.y = q.y();
+      target_pose1.orientation.z = q.z();
+      target_pose1.orientation.w = q.w();
+      target_pose1.position.x = tag_x + regions[1][i];
+      target_pose1.position.y = tag_y + regions[2][i];
+      target_pose1.position.z = z;
+      
+      move_group.setPoseTarget(target_pose1);
+      success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+      ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
+      move_group.move();
+      
+      ft_sub = node_handle.subscribe("robotiq_ft_wrench", 10, ftCallback);   
+      
+    }
+
+    //Clear Path Constraints
+
+    // move_group.clearPathConstraints();
 
   // Wobble positive and return to vertical
-  for (int rot_i = 1; rot_i<11; rot_i++){
+  for (int rot_i = 1; rot_i<7; rot_i++){
     Eigen::Matrix3d small_wobble = rot1;
     for (int j = 1; j<rot_i; j++){
       small_wobble = small_wobble*roty3;
@@ -336,7 +436,7 @@ int main(int argc, char** argv)
     target_pose1.orientation.w = small_wobble_q.w();
     target_pose1.position.x = tag_x + regions[1][i];
     target_pose1.position.y = tag_y + regions[2][i];
-    target_pose1.position.z = tag_z + 0.1;
+    target_pose1.position.z = z;
 
     move_group.setPoseTarget(target_pose1);
     success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
@@ -344,7 +444,7 @@ int main(int argc, char** argv)
     move_group.move();
   }
 
-  for (int rot_i = 10; rot_i>-1; rot_i--){
+  for (int rot_i = 6; rot_i>-1; rot_i--){
     Eigen::Matrix3d small_wobble = rot1;
     for (int j = 1; j<rot_i; j++){
       small_wobble = small_wobble*roty3;
@@ -358,7 +458,7 @@ int main(int argc, char** argv)
     target_pose1.orientation.w = small_wobble_q.w();
     target_pose1.position.x = tag_x + regions[1][i];
     target_pose1.position.y = tag_y + regions[2][i];
-    target_pose1.position.z = tag_z + 0.1;
+    target_pose1.position.z = z;
 
     move_group.setPoseTarget(target_pose1);
     success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
@@ -368,7 +468,7 @@ int main(int argc, char** argv)
 
   //Wobble negative and return to vertical
 
-  for (int rot_i = 1; rot_i<11; rot_i++){
+  for (int rot_i = 1; rot_i<7; rot_i++){
     Eigen::Matrix3d small_wobble = rot1;
     for (int j = 1; j<rot_i; j++){
       small_wobble = small_wobble*rotyneg3;
@@ -382,7 +482,7 @@ int main(int argc, char** argv)
     target_pose1.orientation.w = small_wobble_q.w();
     target_pose1.position.x = tag_x + regions[1][i];
     target_pose1.position.y = tag_y + regions[2][i];
-    target_pose1.position.z = tag_z + 0.1;
+    target_pose1.position.z = z;
 
     move_group.setPoseTarget(target_pose1);
     success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
@@ -390,7 +490,7 @@ int main(int argc, char** argv)
     move_group.move();
   }
 
-  for (int rot_i = 10; rot_i>-1; rot_i--){
+  for (int rot_i = 6; rot_i>-1; rot_i--){
     Eigen::Matrix3d small_wobble = rot1;
     for (int j = 1; j<rot_i; j++){
       small_wobble = small_wobble*rotyneg3;
@@ -404,103 +504,24 @@ int main(int argc, char** argv)
     target_pose1.orientation.w = small_wobble_q.w();
     target_pose1.position.x = tag_x + regions[1][i];
     target_pose1.position.y = tag_y + regions[2][i];
-    target_pose1.position.z = tag_z + 0.1;
+    target_pose1.position.z = z;
 
     move_group.setPoseTarget(target_pose1);
     success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
     ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
     move_group.move();
   }
-
-
-
-
-
-
-
-
-
-
-    //Wobble 30 degrees around Lateral axis
-    // target_pose1.orientation.x = wobble_q.x();
-    // target_pose1.orientation.y = wobble_q.y();
-    // target_pose1.orientation.z = wobble_q.z();
-    // target_pose1.orientation.w = wobble_q.w();
-    // target_pose1.position.x = tag_x + regions[1][i];
-    // target_pose1.position.y = tag_y + regions[2][i];
-    // target_pose1.position.z = tag_z + 0.01;
-
-    // move_group.setPoseTarget(target_pose1);
-    // success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-    // ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
-    // move_group.move();
-
-    // // Return PROBE to vertical orientation
-    // target_pose1.orientation.x = q.x();
-    // target_pose1.orientation.y = q.y();
-    // target_pose1.orientation.z = q.z();
-    // target_pose1.orientation.w = q.w();
-    // target_pose1.position.x = tag_x + regions[1][i];
-    // target_pose1.position.y = tag_y + regions[2][i];
-    // target_pose1.position.z = tag_z + 0.01;
-
-    // move_group.setPoseTarget(target_pose1);
-    // success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-    // ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
-    // move_group.move();
-
-    // //Wobble -30 degrees around Lateral axis
-    // target_pose1.orientation.x = wobble2_q.x();
-    // target_pose1.orientation.y = wobble2_q.y();
-    // target_pose1.orientation.z = wobble2_q.z();
-    // target_pose1.orientation.w = wobble2_q.w();
-    // target_pose1.position.x = tag_x + regions[1][i];
-    // target_pose1.position.y = tag_y + regions[2][i];
-    // target_pose1.position.z = tag_z + 0.01;
-
-    // move_group.setPoseTarget(target_pose1);
-    // success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-    // ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
-    // move_group.move();
-
-    // //Return PROBE to vertical orientation
-    // target_pose1.orientation.x = q.x();
-    // target_pose1.orientation.y = q.y();
-    // target_pose1.orientation.z = q.z();
-    // target_pose1.orientation.w = q.w();
-    // target_pose1.position.x = tag_x + regions[1][i];
-    // target_pose1.position.y = tag_y + regions[2][i];
-    // target_pose1.position.z = tag_z + 0.01;
-
-    // move_group.setPoseTarget(target_pose1);
-    // success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-    // ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
-    // move_group.move();
-
-    // //Return PROBE 5 cm above region of concern
-    // target_pose1.orientation.x = q.x();
-    // target_pose1.orientation.y = q.y();
-    // target_pose1.orientation.z = q.z();
-    // target_pose1.orientation.w = q.w();
-    // target_pose1.position.x = tag_x + regions[1][i];
-    // target_pose1.position.y = tag_y + regions[2][i];
-    // target_pose1.position.z = tag_z + 0.05;
-
-    // move_group.setPoseTarget(target_pose1);
-    // success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-    // ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
-    // move_group.move();
     
   }
 
   //Return Probe to original position
-    target_pose1.orientation.x = 0.246609;
-    target_pose1.orientation.y = 0.735497;
-    target_pose1.orientation.z = -0.15326;
-    target_pose1.orientation.w = 0.612172;
-    target_pose1.position.x = 0.152969;
-    target_pose1.position.y =0.475094;
-    target_pose1.position.z = 0.490945;
+    target_pose1.orientation.x = 0.238037;
+    target_pose1.orientation.y = 0.668161;
+    target_pose1.orientation.z = -0.24411;
+    target_pose1.orientation.w = 0.661294;
+    target_pose1.position.x = 0.230228;
+    target_pose1.position.y =0.309703;
+    target_pose1.position.z = 0.369194;
   
   move_group.setPoseTarget(target_pose1);
   success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
