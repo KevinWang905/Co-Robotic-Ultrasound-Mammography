@@ -227,7 +227,7 @@ int main(int argc, char** argv)
       target_pose1.orientation.w = 0.604222;
       target_pose1.position.x = tag_x;
       target_pose1.position.y = tag_y;
-      target_pose1.position.z = tag_z + 0.05;
+      target_pose1.position.z = tag_z + 0.2;
 
 
 
@@ -355,14 +355,14 @@ int main(int argc, char** argv)
 
   for (int i = 0; i < region_num; i++) {
 
-    //Move PROBE 5 cm above region of concern
+    //Move PROBE 20 cm above region of concern
     target_pose1.orientation.x = q.x();
     target_pose1.orientation.y = q.y();
     target_pose1.orientation.z = q.z();
     target_pose1.orientation.w = q.w();
     target_pose1.position.x = tag_x + regions[1][i];
     target_pose1.position.y = tag_y + regions[2][i];
-    target_pose1.position.z = tag_z + 0.02;
+    target_pose1.position.z = tag_z + 0.2;
 
     move_group.setPoseTarget(target_pose1);
     success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
@@ -371,7 +371,7 @@ int main(int argc, char** argv)
 
 
     //Move PROBE to region of concern with force sensing
-    float z = tag_z + 0.02;
+    float z = tag_z + 0.2;
     ft_sub = node_handle.subscribe("robotiq_ft_wrench", 10, ftCallback);   
     std::cout << wr.force.z << std::endl;
 
@@ -393,7 +393,7 @@ int main(int argc, char** argv)
     ///
 
 
-    while (wr.force.z > -1) {
+    while (wr.force.z > -3) {
 
       std::cout << wr.force.z << std::endl;
 
