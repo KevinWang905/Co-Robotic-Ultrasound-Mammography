@@ -121,7 +121,8 @@ int main(int argc, char** argv)
 
   while (node_handle.ok()){
     tf::StampedTransform transform_bh;
-    tf::StampedTransform transform_wm;
+    tf::StampedTransform transform_wm1;
+    tf::StampedTransform transform_wm2;
 
     try{
 
@@ -140,13 +141,18 @@ int main(int argc, char** argv)
       transform.setRotation(q);
       br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "tool0", "stereo_gazebo_left_camera_optical_frame"));
 
-      listener.lookupTransform("world", "aruco_marker_frame", ros::Time(0), transform_wm);
+      listener.lookupTransform("world", "aruco_marker_frame_1", ros::Time(0), transform_wm1);
+      listener.lookupTransform("world", "aruco_marker_frame_2", ros::Time(0), transform_wm2);
 
       //geometry_msgs::Pose target_pose1;
 
-      std::cout << transform_wm.getOrigin().x() << std::endl;
-      std::cout << transform_wm.getOrigin().y() << std::endl;
-      std::cout << transform_wm.getOrigin().z() << std::endl;
+      std::cout << transform_wm1.getOrigin().x() << std::endl;
+      std::cout << transform_wm1.getOrigin().y() << std::endl;
+      std::cout << transform_wm1.getOrigin().z() << std::endl;
+
+      std::cout << transform_wm2.getOrigin().x() << std::endl;
+      std::cout << transform_wm2.getOrigin().y() << std::endl;
+      std::cout << transform_wm2.getOrigin().z() << std::endl;
       
     }
     catch (tf::TransformException ex){
