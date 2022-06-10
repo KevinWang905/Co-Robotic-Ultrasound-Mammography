@@ -119,6 +119,10 @@ int main(int argc, char** argv)
   std::copy(move_group.getJointModelGroupNames().begin(), move_group.getJointModelGroupNames().end(),
             std::ostream_iterator<std::string>(std::cout, ", "));
 
+  
+  geometry_msgs::Pose target_pose1;
+  geometry_msgs::Pose target_pose2;
+  
   while (node_handle.ok()){
     tf::StampedTransform transform_bh;
     tf::StampedTransform transform_wm1;
@@ -142,9 +146,25 @@ int main(int argc, char** argv)
       br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "tool0", "stereo_gazebo_left_camera_optical_frame"));
 
       listener.lookupTransform("world", "aruco_marker_frame_1", ros::Time(0), transform_wm1);
+      
+      target_pose1.orientation.x = -0.1026;
+      target_pose1.orientation.y = 0.76332;
+      target_pose1.orientation.z = 0.15701;
+      target_pose1.orientation.w = 0.61819;
+      target_pose1.position.x = transform_wm1.getOrigin().x() - 0.032 ;
+      target_pose1.position.y = transform_wm1.getOrigin().y() + 0.01;
+      target_pose1.position.z = transform_wm1.getOrigin().z() + 0.05;
+      
       listener.lookupTransform("world", "aruco_marker_frame_2", ros::Time(0), transform_wm2);
+      
+      target_pose1.orientation.x = -0.1026;
+      target_pose1.orientation.y = 0.76332;
+      target_pose1.orientation.z = 0.15701;
+      target_pose1.orientation.w = 0.61819;
+      target_pose1.position.x = transform_wm2.getOrigin().x() - 0.032 ;
+      target_pose1.position.y = transform_wm2.getOrigin().y() + 0.01;
+      target_pose1.position.z = transform_wm2.getOrigin().z() + 0.05;
 
-      //geometry_msgs::Pose target_pose1;
 
       std::cout << transform_wm1.getOrigin().x() << std::endl;
       std::cout << transform_wm1.getOrigin().y() << std::endl;
@@ -154,6 +174,13 @@ int main(int argc, char** argv)
       std::cout << transform_wm2.getOrigin().y() << std::endl;
       std::cout << transform_wm2.getOrigin().z() << std::endl;
       
+      
+      std::cout << transform_wm2.getOrigin().x() - transform_wm1.getOrigin().x() << std::endl;
+      std::cout << transform_wm2.getOrigin().y() - transform_wm1.getOrigin().y() << std::endl;
+      std::cout << transform_wm2.getOrigin().z() - transform_wm1.getOrigin().z() << std::endl;
+      
+      break;
+      
     }
     catch (tf::TransformException ex){
       ROS_ERROR("%s", ex.what());
@@ -161,6 +188,11 @@ int main(int argc, char** argv)
     }
     rate.sleep();
   }
+  
+  move_group.setPoseTarget(target_pose1);
+  
+  move_group.setPoseTarget(target_pose2);
+  
   return 0;
 }
 
