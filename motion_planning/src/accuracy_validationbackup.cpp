@@ -1,5 +1,3 @@
-
-
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
@@ -50,6 +48,9 @@
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
 #include <tf/transform_broadcaster.h>
+
+#include <Eigen/Geometry>
+#include <iostream>
 
 int main(int argc, char** argv)
 {
@@ -119,9 +120,14 @@ int main(int argc, char** argv)
   std::copy(move_group.getJointModelGroupNames().begin(), move_group.getJointModelGroupNames().end(),
             std::ostream_iterator<std::string>(std::cout, ", "));
 
+  
+  geometry_msgs::Pose target_pose1;
+  geometry_msgs::Pose target_pose2;
+  
   while (node_handle.ok()){
     tf::StampedTransform transform_bh;
     tf::StampedTransform transform_wm1;
+    tf::StampedTransform transform_wm2;
 
     try{
 
@@ -140,14 +146,42 @@ int main(int argc, char** argv)
       transform.setRotation(q);
       br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "tool0", "stereo_gazebo_left_camera_optical_frame"));
 
-      listener.lookupTransform("world", "aruco_marker_frame", ros::Time(0), transform_wm1);
+      listener.lookupTransform("world", "aruco_marker_frame_1", ros::Time(0), transform_wm1);
 
-      //geometry_msgs::Pose target_pose1;
+      listener.lookupTransform("world", "aruco_marker_frame_2", ros::Time(0), transform_wm2);
+      
+      target_pose1.orientation.x = -0.1026;
+      target_pose1.orientation.y = 0.76332;
+      target_pose1.orientation.z = 0.15701;
+      target_pose1.orientation.w = 0.61819;
+      target_pose1.position.x = transform_wm2.getOrigin().x()+0.08;
+      target_pose1.position.y = transform_wm2.getOrigin().y()-0.02;
+      target_pose1.position.z = transform_wm2.getOrigin().z()+0.15;
+      
+      
+      target_pose2.orientation.x = -0.1026;
+      target_pose2.orientation.y = 0.76332;
+      target_pose2.orientation.z = 0.15701;
+      target_pose2.orientation.w = 0.61819;
+      target_pose2.position.x = transform_wm2.getOrigin().x()+0.08;
+      target_pose2.position.y = transform_wm2.getOrigin().y()-0.02;
+      target_pose2.position.z = transform_wm2.getOrigin().z()+0.055;
+
 
       std::cout << transform_wm1.getOrigin().x() << std::endl;
       std::cout << transform_wm1.getOrigin().y() << std::endl;
       std::cout << transform_wm1.getOrigin().z() << std::endl;
 
+      std::cout << transform_wm2.getOrigin().x() << std::endl;
+      std::cout << transform_wm2.getOrigin().y() << std::endl;
+      std::cout << transform_wm2.getOrigin().z() << std::endl;
+      
+      
+      std::cout << transform_wm2.getOrigin().x() - transform_wm1.getOrigin().x() << std::endl;
+      std::cout << transform_wm2.getOrigin().y() - transform_wm1.getOrigin().y() << std::endl;
+      std::cout << transform_wm2.getOrigin().z() - transform_wm1.getOrigin().z() << std::endl;
+      
+      break;
       
     }
     catch (tf::TransformException ex){
@@ -156,6 +190,70 @@ int main(int argc, char** argv)
     }
     rate.sleep();
   }
+  move_group.setMaxVelocityScalingFactor(0.05);
+  move_group.setMaxAccelerationScalingFactor(0.1);
+
+
+  move_group.setPoseTarget(target_pose1);
+  move_group.move();
+
+  move_group.setMaxVelocityScalingFactor(0.03);
+  move_group.setMaxAccelerationScalingFactor(0.1);
+  
+  move_group.setPoseTarget(target_pose2);
+  move_group.move();
+
+  std::cout << "Press Enter to rotate probe";
+  std::cin.ignore();
+
+
+  //Rotation representing PROBE directly downward
+  Eigen::Quaterniond q;
+  q.x() = -0.1026;
+  q.y() = 0.76332;
+  q.z() = 0.15701;
+  q.w() = 0.61819;
+
+
+  //Generate quaternion for 30 degree rotation about the y axis
+  //(Lateral axis of the ultrasound probe)
+  Eigen::Matrix3d rot1 = q.toRotationMatrix();
+  Eigen::Matrix3d rotz90;
+  rotz90 << 1, 0, 0, 0,0,-1, 0,1,0;
+  Eigen::Matrix3d wobble = rot1 * rotz90;
+  Eigen::Quaterniond swapwires(wobble);
+  swapwires = swapwires.normalized();
+
+  target_pose2.orientation.x = swapwires.x();
+  target_pose2.orientation.y = swapwires.y();
+  target_pose2.orientation.z = swapwires.z();
+  target_pose2.orientation.w = swapwires.w();
+
+
+  move_group.setPoseTarget(target_pose2);
+  move_group.move();
+
+
+
+
+
+ 
+  std::cout << "Press Enter to return to start";
+  std::cin.ignore();
+
+
+  move_group.setMaxVelocityScalingFactor(0.05);
+  move_group.setMaxAccelerationScalingFactor(0.1);
+  target_pose1.orientation.x = 0.238037;
+  target_pose1.orientation.y = 0.668161;
+  target_pose1.orientation.z = -0.24411;
+  target_pose1.orientation.w = 0.661294;
+  target_pose1.position.x = 0.230228;
+  target_pose1.position.y =0.309703;
+  target_pose1.position.z = 0.369194;
+  
+  move_group.setPoseTarget(target_pose1);
+  move_group.move();
+  
   return 0;
 }
-

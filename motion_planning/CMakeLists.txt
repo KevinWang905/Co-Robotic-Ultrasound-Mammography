@@ -79,5 +79,13 @@ target_link_libraries(force_sensor_integration ${catkin_LIBRARIES})
 add_executable(force_wobble src/force_wobble.cpp)
 target_link_libraries(force_wobble ${catkin_LIBRARIES})
 
+add_executable(accuracy_validation src/accuracy_validation.cpp)
+target_link_libraries(accuracy_validation ${catkin_LIBRARIES})
+
+add_executable(pivot_calibration src/pivot_calibration.cpp)
+target_link_libraries(pivot_calibration ${catkin_LIBRARIES})
+
+
+
 
 

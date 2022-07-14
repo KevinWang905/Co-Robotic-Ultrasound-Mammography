@@ -1,5 +1,3 @@
-
-
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
@@ -50,6 +48,9 @@
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
 #include <tf/transform_broadcaster.h>
+
+#include <Eigen/Geometry>
+#include <iostream>
 
 int main(int argc, char** argv)
 {
@@ -119,19 +120,18 @@ int main(int argc, char** argv)
   std::copy(move_group.getJointModelGroupNames().begin(), move_group.getJointModelGroupNames().end(),
             std::ostream_iterator<std::string>(std::cout, ", "));
 
+  
+  geometry_msgs::Pose target_pose1;
+  geometry_msgs::Pose target_pose2;
+  tf::StampedTransform transform_wm;
+
+
   while (node_handle.ok()){
-    tf::StampedTransform transform_bh;
-    tf::StampedTransform transform_wm1;
+    
 
     try{
 
-      listener.lookupTransform("world", "ee_link", ros::Time(0), transform_bh);
-      
-      //listener.lookupTransform("ee_link", "camera", ros::Time(0), transform_hs);
-      //listener.lookupTransform("camera", "marker", ros::Time(0), transform_sc);
 
-      // std::cout << transform_bh.getOrigin().x() << std::endl;
-      // std::cout << transform_bh.getRotation().x() << std::endl;
 
       static tf::TransformBroadcaster br;
       tf::Transform transform;
@@ -140,14 +140,21 @@ int main(int argc, char** argv)
       transform.setRotation(q);
       br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "tool0", "stereo_gazebo_left_camera_optical_frame"));
 
-      listener.lookupTransform("world", "aruco_marker_frame", ros::Time(0), transform_wm1);
+      listener.lookupTransform("world", "aruco_marker_frame", ros::Time(0), transform_wm);
 
-      //geometry_msgs::Pose target_pose1;
+      
+      target_pose1.orientation.x = -0.1026;
+      target_pose1.orientation.y = 0.76332;
+      target_pose1.orientation.z = 0.15701;
+      target_pose1.orientation.w = 0.61819;
+      target_pose1.position.x = transform_wm.getOrigin().x();
+      target_pose1.position.y = transform_wm.getOrigin().y();
+      target_pose1.position.z = transform_wm.getOrigin().z();
+      
+      
 
-      std::cout << transform_wm1.getOrigin().x() << std::endl;
-      std::cout << transform_wm1.getOrigin().y() << std::endl;
-      std::cout << transform_wm1.getOrigin().z() << std::endl;
 
+      break;
       
     }
     catch (tf::TransformException ex){
@@ -156,6 +163,73 @@ int main(int argc, char** argv)
     }
     rate.sleep();
   }
+  move_group.setMaxVelocityScalingFactor(0.05);
+  move_group.setMaxAccelerationScalingFactor(0.1);
+
+
+  move_group.setPoseTarget(target_pose1);
+  move_group.move();
+
+  // //Rotation representing aruco marker orientation
+  Eigen::Quaternionf arucomarkerorientation;
+  arucomarkerorientation.x() = transform_wm.getRotation().x();
+  arucomarkerorientation.y() = transform_wm.getRotation().y();
+  arucomarkerorientation.z() = transform_wm.getRotation().z();
+  arucomarkerorientation.w() = transform_wm.getRotation().w();
+  Eigen::Matrix3f R_marker = arucomarkerorientation.toRotationMatrix();
+
+  // Locate Point from Aruco Marker via Pivot Calibration
+  Eigen::Matrix4f T_markertopoint;
+  T_markertopoint << 1,0,0, 0.0066, 0,1,0, -0.1753, 0,0,1, -0.0072, 0,0,0,1;
+  Eigen::Matrix4f G_arucomarker;
+  G_arucomarker << R_marker.row(0), transform_wm.getOrigin().x(), R_marker.row(1), transform_wm.getOrigin().y(), R_marker.row(2), transform_wm.getOrigin().z(), 0,0,0,1;
+
+
+
+  Eigen::Matrix4f pointlocation = G_arucomarker * T_markertopoint;
+
+
+  // target_pose1.orientation.x = -0.1026;
+  // target_pose1.orientation.y = 0.76332;
+  // target_pose1.orientation.z = 0.15701;
+  // target_pose1.orientation.w = 0.61819;
+  target_pose1.orientation.x = transform_wm.getRotation().x();
+  target_pose1.orientation.y = transform_wm.getRotation().y();
+  target_pose1.orientation.z = -transform_wm.getRotation().z();
+  target_pose1.orientation.w = transform_wm.getRotation().w();
+  target_pose1.position.x = pointlocation.coeff(0, 3);
+  target_pose1.position.y = pointlocation.coeff(1, 3);
+  target_pose1.position.z = pointlocation.coeff(2, 3);
+
+
+  std::cout << "Press Enter to move to point";
+  std::cin.ignore();
+
+
+  move_group.setMaxVelocityScalingFactor(0.03);
+  move_group.setMaxAccelerationScalingFactor(0.1);
+  
+  move_group.setPoseTarget(target_pose1);
+  move_group.move();
+
+
+ 
+  std::cout << "Press Enter to return to start";
+  std::cin.ignore();
+
+
+  move_group.setMaxVelocityScalingFactor(0.05);
+  move_group.setMaxAccelerationScalingFactor(0.1);
+  target_pose1.orientation.x = 0.238037;
+  target_pose1.orientation.y = 0.668161;
+  target_pose1.orientation.z = -0.24411;
+  target_pose1.orientation.w = 0.661294;
+  target_pose1.position.x = 0.230228;
+  target_pose1.position.y =0.309703;
+  target_pose1.position.z = 0.369194;
+  
+  move_group.setPoseTarget(target_pose1);
+  move_group.move();
+  
   return 0;
 }
-

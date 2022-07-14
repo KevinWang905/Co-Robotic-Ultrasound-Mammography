@@ -9,7 +9,7 @@
   </node>
 
   <!-- Run arucoros -->
-  <include file="$(find aruco_ros)/launch/single.launch">
+  <include file="$(find aruco_ros)/launch/double.launch">
   </include>
 
 </launch>

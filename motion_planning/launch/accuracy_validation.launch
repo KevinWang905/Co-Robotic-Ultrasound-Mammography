@@ -1,0 +1,6 @@
+<launch>
+
+  <node name="accuracy_test_node" pkg="motion_planning" type="accuracy_validation" respawn="false" output="screen">
+  </node>
+
+</launch>

@@ -1,0 +1,6 @@
+<launch>
+
+  <node name="pivot_cal_node" pkg="motion_planning" type="pivot_calibration" respawn="false" output="screen">
+  </node>
+
+</launch>

@@ -51,6 +51,9 @@
 #include <tf/transform_listener.h>
 #include <tf/transform_broadcaster.h>
 
+#include <Eigen/Geometry>
+#include <iostream>
+
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "basic_movement");
@@ -120,18 +123,11 @@ int main(int argc, char** argv)
             std::ostream_iterator<std::string>(std::cout, ", "));
 
   while (node_handle.ok()){
-    tf::StampedTransform transform_bh;
     tf::StampedTransform transform_wm1;
 
     try{
 
-      listener.lookupTransform("world", "ee_link", ros::Time(0), transform_bh);
-      
-      //listener.lookupTransform("ee_link", "camera", ros::Time(0), transform_hs);
-      //listener.lookupTransform("camera", "marker", ros::Time(0), transform_sc);
 
-      // std::cout << transform_bh.getOrigin().x() << std::endl;
-      // std::cout << transform_bh.getRotation().x() << std::endl;
 
       static tf::TransformBroadcaster br;
       tf::Transform transform;
@@ -143,11 +139,27 @@ int main(int argc, char** argv)
       listener.lookupTransform("world", "aruco_marker_frame", ros::Time(0), transform_wm1);
 
       //geometry_msgs::Pose target_pose1;
+      std::cout << "" << std::endl;
+      
+      std::cout << transform_wm1.getOrigin().x();
+      std::cout << ", ";
+      std::cout << transform_wm1.getOrigin().y();
+      std::cout << ", ";
+      std::cout << transform_wm1.getOrigin().z();
+      std::cout << ", ";
+      std::cout << transform_wm1.getRotation().x();
+      std::cout << ", ";
+      std::cout << transform_wm1.getRotation().y();
+      std::cout << ", ";
+      std::cout << transform_wm1.getRotation().z();
+      std::cout << ", ";
+      std::cout << transform_wm1.getRotation().w();
+      std::cout << "; " << std::endl;
+      std::cout << "" << std::endl;
 
-      std::cout << transform_wm1.getOrigin().x() << std::endl;
-      std::cout << transform_wm1.getOrigin().y() << std::endl;
-      std::cout << transform_wm1.getOrigin().z() << std::endl;
 
+      std::cout << "Press Enter for next pose";
+      std::cin.ignore();
       
     }
     catch (tf::TransformException ex){
